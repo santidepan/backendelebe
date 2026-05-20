@@ -22,12 +22,42 @@ model Articulo {
   producciones Produccion[]
 }
 
+model RubroInsumo {
+  id     String @id @default(cuid())
+  label  String @db.VarChar(200)
+  unidad String @db.VarChar(20)
+}
+
+model TipoEtapa {
+  id       String            @id @default(cuid())
+  nombre   String            @db.VarChar(200)
+  talleres TipoEtapaTaller[]
+  etapas   Etapa[]
+}
+
+model Taller {
+  id         String            @id @default(cuid())
+  nombre     String            @db.VarChar(200)
+  tiposEtapa TipoEtapaTaller[]
+  etapas     Etapa[]
+}
+
+model TipoEtapaTaller {
+  taller_id     String
+  tipo_etapa_id String
+  taller        Taller    @relation(fields: [taller_id], references: [id], onDelete: Cascade)
+  tipoEtapa     TipoEtapa @relation(fields: [tipo_etapa_id], references: [id], onDelete: Cascade)
+
+  @@id([taller_id, tipo_etapa_id])
+}
+
 model Usuario {
-  id       String @id @default(cuid())
-  username String @unique @db.VarChar(100)
-  password String @db.VarChar(255)
-  nombre   String @db.VarChar(200)
-  role     String @default("user") @db.VarChar(20)
+  id           String       @id @default(cuid())
+  username     String       @unique @db.VarChar(100)
+  password     String       @db.VarChar(255)
+  nombre       String       @db.VarChar(200)
+  role         String       @default("user") @db.VarChar(20)
+  producciones Produccion[]
 }
 
 model Produccion {
@@ -45,6 +75,8 @@ model Produccion {
   fecha_cierre_estimada String?   @db.VarChar(10)
   finalizada            Boolean   @default(false)
   fecha_fin_real        String?   @db.VarChar(10)
+  vendedor_id           String?
+  vendedor              Usuario?  @relation(fields: [vendedor_id], references: [id])
   insumos               Insumo[]
   etapas                Etapa[]
   createdAt             DateTime  @default(now())
@@ -55,7 +87,7 @@ model Insumo {
   id             String     @id @default(cuid())
   produccion_id  String
   produccion     Produccion @relation(fields: [produccion_id], references: [id], onDelete: Cascade)
-  rubro          String     @db.VarChar(50)
+  rubro          String     @db.VarChar(200)
   descripcion    String?    @db.VarChar(300)
   costo_unitario Float?
   cantidad       Float?
@@ -66,6 +98,10 @@ model Etapa {
   id               String     @id @default(cuid())
   produccion_id    String
   produccion       Produccion @relation(fields: [produccion_id], references: [id], onDelete: Cascade)
+  tipo_etapa_id    String?
+  tipoEtapa        TipoEtapa? @relation(fields: [tipo_etapa_id], references: [id])
+  taller_id        String?
+  taller           Taller?    @relation(fields: [taller_id], references: [id])
   nombre           String?    @db.VarChar(200)
   taller_proveedor String?    @db.VarChar(200)
   fecha_inicio     String?    @db.VarChar(10)

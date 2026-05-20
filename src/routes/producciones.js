@@ -7,8 +7,11 @@ const prisma = new PrismaClient();
 const includeAll = {
   unidad: true,
   articulo: true,
+  vendedor: true,
   insumos: true,
-  etapas: true,
+  etapas: {
+    include: { tipoEtapa: true, taller: true },
+  },
 };
 
 // Convierte el registro de BD al shape que espera el frontend
@@ -16,9 +19,15 @@ function normalize(p) {
   return {
     ...p,
     unidad: p.unidad.nombre,       // "Textil" | "Agencia"  (string, no objeto)
+    vendedor_id: p.vendedor_id || "",
     insumos: p.insumos.map((ins) => ({
       ...ins,
       unidad: ins.unidad_medida,   // el frontend usa "unidad" para la unidad de medida
+    })),
+    etapas: p.etapas.map((et) => ({
+      ...et,
+      tipo_etapa_id: et.tipo_etapa_id || "",
+      taller_id: et.taller_id || "",
     })),
   };
 }
@@ -41,6 +50,7 @@ function buildScalars(data, unidad_id) {
     fecha_cierre_estimada: data.fecha_cierre_estimada || null,
     finalizada: Boolean(data.finalizada),
     fecha_fin_real: data.fecha_fin_real || null,
+    vendedor_id: data.vendedor_id || null,
   };
 }
 
@@ -56,6 +66,8 @@ function mapInsumos(insumos = []) {
 
 function mapEtapas(etapas = []) {
   return etapas.map((et) => ({
+    tipo_etapa_id: et.tipo_etapa_id || null,
+    taller_id: et.taller_id || null,
     nombre: et.nombre || "",
     taller_proveedor: et.taller_proveedor || "",
     fecha_inicio: et.fecha_inicio || null,
