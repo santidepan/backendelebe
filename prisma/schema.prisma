@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Unidad {
+  id           Int          @id @default(autoincrement())
+  nombre       String       @unique @db.VarChar(100)
+  articulos    Articulo[]
+  producciones Produccion[]
+}
+
+model Articulo {
+  id           String       @id @default(cuid())
+  label        String       @db.VarChar(200)
+  unidad_id    Int
+  unidad       Unidad       @relation(fields: [unidad_id], references: [id])
+  producciones Produccion[]
+}
+
+model Usuario {
+  id       String @id @default(cuid())
+  username String @unique @db.VarChar(100)
+  password String @db.VarChar(255)
+  nombre   String @db.VarChar(200)
+  role     String @default("user") @db.VarChar(20)
+}
+
+model Produccion {
+  id                    String    @id @default(cuid())
+  nombre                String    @db.VarChar(200)
+  cliente               String?   @db.VarChar(200)
+  unidad_id             Int
+  unidad                Unidad    @relation(fields: [unidad_id], references: [id])
+  articulo_id           String?
+  articulo              Articulo? @relation(fields: [articulo_id], references: [id])
+  descripcion           String?   @db.Text
+  cantidad_prendas      Float?
+  precio_venta          Float?
+  fecha_inicio          String?   @db.VarChar(10)
+  fecha_cierre_estimada String?   @db.VarChar(10)
+  finalizada            Boolean   @default(false)
+  fecha_fin_real        String?   @db.VarChar(10)
+  insumos               Insumo[]
+  etapas                Etapa[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Insumo {
+  id             String     @id @default(cuid())
+  produccion_id  String
+  produccion     Produccion @relation(fields: [produccion_id], references: [id], onDelete: Cascade)
+  rubro          String     @db.VarChar(50)
+  descripcion    String?    @db.VarChar(300)
+  costo_unitario Float?
+  cantidad       Float?
+  unidad_medida  String?    @db.VarChar(50)
+}
+
+model Etapa {
+  id               String     @id @default(cuid())
+  produccion_id    String
+  produccion       Produccion @relation(fields: [produccion_id], references: [id], onDelete: Cascade)
+  nombre           String?    @db.VarChar(200)
+  taller_proveedor String?    @db.VarChar(200)
+  fecha_inicio     String?    @db.VarChar(10)
+  fecha_cierre     String?    @db.VarChar(10)
+  estado           String     @default("pendiente") @db.VarChar(30)
+  costo_total      Float?
+  notas            String?    @db.Text
+}
