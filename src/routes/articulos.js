@@ -82,6 +82,9 @@ router.get("/:id/standard", async (req, res) => {
           include: { tipoEtapa: { select: { nombre: true } } },
           orderBy: { orden: "asc" },
         },
+        insumosStandard: {
+          orderBy: { orden: "asc" },
+        },
       },
     });
     if (!articulo) return res.status(404).json({ error: "Artículo no encontrado" });
@@ -94,6 +97,12 @@ router.get("/:id/standard", async (req, res) => {
         costo_unitario: e.costo_unitario,
         orden: e.orden,
       })),
+      insumos: articulo.insumosStandard.map((ins) => ({
+        id: ins.id,
+        descripcion: ins.descripcion,
+        costo_unitario: ins.costo_unitario,
+        orden: ins.orden,
+      })),
     });
   } catch (err) {
     console.error(err);
@@ -104,15 +113,18 @@ router.get("/:id/standard", async (req, res) => {
 // PUT /api/articulos/:id/standard
 router.put("/:id/standard", adminOnly, async (req, res) => {
   const { id } = req.params;
-  const { descripcion_standard, etapas = [] } = req.body;
+  const { descripcion_standard, etapas = [], insumos = [] } = req.body;
   try {
+    // Delete existing and update description in one transaction
     await prisma.$transaction([
       prisma.articuloEtapaStandard.deleteMany({ where: { articulo_id: id } }),
+      prisma.articuloInsumoStandard.deleteMany({ where: { articulo_id: id } }),
       prisma.articulo.update({
         where: { id },
         data: { descripcion_standard: descripcion_standard || null },
       }),
     ]);
+
     if (etapas.length > 0) {
       await prisma.articuloEtapaStandard.createMany({
         data: etapas.map((e, idx) => ({
@@ -123,6 +135,19 @@ router.put("/:id/standard", adminOnly, async (req, res) => {
         })),
       });
     }
+
+    const insumosValidos = insumos.filter((ins) => ins.descripcion?.trim());
+    if (insumosValidos.length > 0) {
+      await prisma.articuloInsumoStandard.createMany({
+        data: insumosValidos.slice(0, 5).map((ins, idx) => ({
+          articulo_id: id,
+          descripcion: ins.descripcion.trim(),
+          costo_unitario: parseFloat(ins.costo_unitario) || 0,
+          orden: idx,
+        })),
+      });
+    }
+
     const updated = await prisma.articulo.findUnique({
       where: { id },
       select: {
@@ -131,6 +156,7 @@ router.put("/:id/standard", adminOnly, async (req, res) => {
           include: { tipoEtapa: { select: { nombre: true } } },
           orderBy: { orden: "asc" },
         },
+        insumosStandard: { orderBy: { orden: "asc" } },
       },
     });
     res.json({
@@ -141,6 +167,12 @@ router.put("/:id/standard", adminOnly, async (req, res) => {
         tipoEtapa: { nombre: e.tipoEtapa.nombre },
         costo_unitario: e.costo_unitario,
         orden: e.orden,
+      })),
+      insumos: updated.insumosStandard.map((ins) => ({
+        id: ins.id,
+        descripcion: ins.descripcion,
+        costo_unitario: ins.costo_unitario,
+        orden: ins.orden,
       })),
     });
   } catch (err) {
