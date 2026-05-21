@@ -28,6 +28,8 @@ function normalize(p) {
       ...et,
       tipo_etapa_id: et.tipo_etapa_id || "",
       taller_id: et.taller_id || "",
+      pagada: et.pagada || false,
+      fecha_pago: et.fecha_pago || null,
     })),
   };
 }
@@ -75,6 +77,8 @@ function mapEtapas(etapas = []) {
     estado: et.estado || "pendiente",
     costo_total: et.costo_total !== "" ? parseFloat(et.costo_total) || null : null,
     notas: et.notas || "",
+    pagada: et.pagada || false,
+    fecha_pago: et.fecha_pago || null,
   }));
 }
 

@@ -70,4 +70,83 @@ router.put("/sync", adminOnly, async (req, res) => {
   }
 });
 
+// GET /api/articulos/:id/standard
+router.get("/:id/standard", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const articulo = await prisma.articulo.findUnique({
+      where: { id },
+      select: {
+        descripcion_standard: true,
+        etapasStandard: {
+          include: { tipoEtapa: { select: { nombre: true } } },
+          orderBy: { orden: "asc" },
+        },
+      },
+    });
+    if (!articulo) return res.status(404).json({ error: "Artículo no encontrado" });
+    res.json({
+      descripcion_standard: articulo.descripcion_standard || "",
+      etapas: articulo.etapasStandard.map((e) => ({
+        id: e.id,
+        tipo_etapa_id: e.tipo_etapa_id,
+        tipoEtapa: { nombre: e.tipoEtapa.nombre },
+        costo_unitario: e.costo_unitario,
+        orden: e.orden,
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+// PUT /api/articulos/:id/standard
+router.put("/:id/standard", adminOnly, async (req, res) => {
+  const { id } = req.params;
+  const { descripcion_standard, etapas = [] } = req.body;
+  try {
+    await prisma.$transaction([
+      prisma.articuloEtapaStandard.deleteMany({ where: { articulo_id: id } }),
+      prisma.articulo.update({
+        where: { id },
+        data: { descripcion_standard: descripcion_standard || null },
+      }),
+    ]);
+    if (etapas.length > 0) {
+      await prisma.articuloEtapaStandard.createMany({
+        data: etapas.map((e, idx) => ({
+          articulo_id: id,
+          tipo_etapa_id: e.tipo_etapa_id,
+          costo_unitario: parseFloat(e.costo_unitario) || 0,
+          orden: e.orden !== undefined ? e.orden : idx,
+        })),
+      });
+    }
+    const updated = await prisma.articulo.findUnique({
+      where: { id },
+      select: {
+        descripcion_standard: true,
+        etapasStandard: {
+          include: { tipoEtapa: { select: { nombre: true } } },
+          orderBy: { orden: "asc" },
+        },
+      },
+    });
+    res.json({
+      descripcion_standard: updated.descripcion_standard || "",
+      etapas: updated.etapasStandard.map((e) => ({
+        id: e.id,
+        tipo_etapa_id: e.tipo_etapa_id,
+        tipoEtapa: { nombre: e.tipoEtapa.nombre },
+        costo_unitario: e.costo_unitario,
+        orden: e.orden,
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
 module.exports = { articulosRouter: router };

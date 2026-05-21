@@ -15,11 +15,13 @@ model Unidad {
 }
 
 model Articulo {
-  id           String       @id @default(cuid())
-  label        String       @db.VarChar(200)
-  unidad_id    Int
-  unidad       Unidad       @relation(fields: [unidad_id], references: [id])
-  producciones Produccion[]
+  id                   String                 @id @default(cuid())
+  label                String                 @db.VarChar(200)
+  unidad_id            Int
+  unidad               Unidad                 @relation(fields: [unidad_id], references: [id])
+  descripcion_standard String?                @db.Text
+  producciones         Produccion[]
+  etapasStandard       ArticuloEtapaStandard[]
 }
 
 model RubroInsumo {
@@ -29,10 +31,11 @@ model RubroInsumo {
 }
 
 model TipoEtapa {
-  id       String            @id @default(cuid())
-  nombre   String            @db.VarChar(200)
-  talleres TipoEtapaTaller[]
-  etapas   Etapa[]
+  id                String                 @id @default(cuid())
+  nombre            String                 @db.VarChar(200)
+  talleres          TipoEtapaTaller[]
+  etapas            Etapa[]
+  articulosStandard ArticuloEtapaStandard[]
 }
 
 model Taller {
@@ -109,4 +112,16 @@ model Etapa {
   estado           String     @default("pendiente") @db.VarChar(30)
   costo_total      Float?
   notas            String?    @db.Text
+  pagada           Boolean    @default(false)
+  fecha_pago       String?    @db.VarChar(10)
+}
+
+model ArticuloEtapaStandard {
+  id             String    @id @default(cuid())
+  articulo_id    String
+  articulo       Articulo  @relation(fields: [articulo_id], references: [id], onDelete: Cascade)
+  tipo_etapa_id  String
+  tipoEtapa      TipoEtapa @relation(fields: [tipo_etapa_id], references: [id], onDelete: Cascade)
+  costo_unitario Float     @default(0)
+  orden          Int       @default(0)
 }

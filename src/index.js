@@ -9,6 +9,7 @@ const { tiposEtapaRouter } = require("./routes/tipos-etapa");
 const { talleresRouter } = require("./routes/talleres");
 const { produccionesRouter } = require("./routes/producciones");
 const { usuariosRouter } = require("./routes/usuarios");
+const { pagosRouter } = require("./routes/pagos");
 const { authMiddleware } = require("./middleware/auth");
 
 const app = express();
@@ -28,6 +29,7 @@ app.use("/api/tipos-etapa", tiposEtapaRouter);
 app.use("/api/talleres", talleresRouter);
 app.use("/api/producciones", produccionesRouter);
 app.use("/api/usuarios", usuariosRouter);
+app.use("/api/pagos", pagosRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
