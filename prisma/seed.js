@@ -12,9 +12,9 @@ async function main() {
   });
 
   const agencia = await prisma.unidad.upsert({
-    where: { nombre: "Agencia" },
+    where: { nombre: "Merchandising" },
     update: {},
-    create: { nombre: "Agencia" },
+    create: { nombre: "Merchandising" },
   });
 
   // Artículos Textil por defecto
@@ -35,14 +35,14 @@ async function main() {
     });
   }
 
-  // Artículos Agencia por defecto
-  const articulosAgencia = [
+  // Artículos Merchandising por defecto
+  const articulosMerchandising = [
     { id: "agencia_fotografia", label: "Fotografía" },
     { id: "agencia_impresion", label: "Impresión" },
     { id: "agencia_campana_digital", label: "Campaña Digital" },
   ];
 
-  for (const art of articulosAgencia) {
+  for (const art of articulosMerchandising) {
     await prisma.articulo.upsert({
       where: { id: art.id },
       update: { label: art.label },
@@ -59,13 +59,13 @@ async function main() {
     { id: "rubro_textil_logistica", label: "Logística", unidad: "Textil" },
   ];
 
-  const rubrosAgencia = [
-    { id: "rubro_agencia_proveedor", label: "Proveedor externo", unidad: "Agencia" },
-    { id: "rubro_agencia_comision", label: "Comisión", unidad: "Agencia" },
-    { id: "rubro_agencia_otro", label: "Otro", unidad: "Agencia" },
+  const rubrosMerchandising = [
+    { id: "rubro_agencia_proveedor", label: "Proveedor externo", unidad: "Merchandising" },
+    { id: "rubro_agencia_comision", label: "Comisión", unidad: "Merchandising" },
+    { id: "rubro_agencia_otro", label: "Otro", unidad: "Merchandising" },
   ];
 
-  for (const r of [...rubrosTextil, ...rubrosAgencia]) {
+  for (const r of [...rubrosTextil, ...rubrosMerchandising]) {
     await prisma.rubroInsumo.upsert({
       where: { id: r.id },
       update: { label: r.label },
@@ -108,9 +108,9 @@ async function main() {
   });
 
   console.log("Seed completado.");
-  console.log(`  Unidades: Textil (id=${textil.id}), Agencia (id=${agencia.id})`);
-  console.log(`  Artículos: ${articulosTextil.length} Textil, ${articulosAgencia.length} Agencia`);
-  console.log(`  Rubros: ${rubrosTextil.length} Textil, ${rubrosAgencia.length} Agencia`);
+  console.log(`  Unidades: Textil (id=${textil.id}), Merchandising (id=${agencia.id})`);
+  console.log(`  Artículos: ${articulosTextil.length} Textil, ${articulosMerchandising.length} Merchandising`);
+  console.log(`  Rubros: ${rubrosTextil.length} Textil, ${rubrosMerchandising.length} Merchandising`);
   console.log(`  Tipos de etapa: ${tiposEtapa.length}`);
   console.log(`  Admin: ${adminUsername}`);
 }

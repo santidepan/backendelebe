@@ -10,7 +10,7 @@ router.get("/", async (_req, res) => {
   try {
     const [textil, agencia] = await Promise.all([
       prisma.rubroInsumo.findMany({ where: { unidad: "Textil" }, orderBy: { label: "asc" } }),
-      prisma.rubroInsumo.findMany({ where: { unidad: "Agencia" }, orderBy: { label: "asc" } }),
+      prisma.rubroInsumo.findMany({ where: { unidad: "Merchandising" }, orderBy: { label: "asc" } }),
     ]);
     res.json({ textil, agencia });
   } catch (err) {
@@ -48,7 +48,7 @@ router.put("/sync", adminOnly, async (req, res) => {
 
     const [resultTextil, resultAgencia] = await Promise.all([
       syncUnit(textil, "Textil"),
-      syncUnit(agencia, "Agencia"),
+      syncUnit(agencia, "Merchandising"),
     ]);
 
     res.json({ textil: resultTextil, agencia: resultAgencia });

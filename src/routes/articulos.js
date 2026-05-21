@@ -25,7 +25,7 @@ router.put("/sync", adminOnly, async (req, res) => {
   try {
     const [unidadTextil, unidadAgencia] = await Promise.all([
       prisma.unidad.findUnique({ where: { nombre: "Textil" } }),
-      prisma.unidad.findUnique({ where: { nombre: "Agencia" } }),
+      prisma.unidad.findUnique({ where: { nombre: "Merchandising" } }),
     ]);
 
     if (!unidadTextil || !unidadAgencia) {
