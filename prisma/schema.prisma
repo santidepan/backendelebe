@@ -32,10 +32,24 @@ model RubroInsumo {
 }
 
 model TipoEtapa {
-  id                String                 @id @default(cuid())
-  nombre            String                 @db.VarChar(200)
-  talleres          TipoEtapaTaller[]
-  etapas            Etapa[]
+  id       String            @id @default(cuid())
+  nombre   String            @db.VarChar(200)
+  talleres TipoEtapaTaller[]
+  etapas   Etapa[]
+}
+
+model InsumoBase {
+  id             String                   @id @default(cuid())
+  nombre         String                   @db.VarChar(200)
+  unidad         String                   @db.VarChar(50)
+  precio_unitario Float                   @default(0)
+  articulosStandard ArticuloInsumoStandard[]
+}
+
+model ProcesoBase {
+  id             String                   @id @default(cuid())
+  nombre         String                   @db.VarChar(200)
+  costo_unitario Float                    @default(0)
   articulosStandard ArticuloEtapaStandard[]
 }
 
@@ -118,20 +132,20 @@ model Etapa {
 }
 
 model ArticuloEtapaStandard {
-  id             String    @id @default(cuid())
-  articulo_id    String
-  articulo       Articulo  @relation(fields: [articulo_id], references: [id], onDelete: Cascade)
-  tipo_etapa_id  String
-  tipoEtapa      TipoEtapa @relation(fields: [tipo_etapa_id], references: [id], onDelete: Cascade)
-  costo_unitario Float     @default(0)
-  orden          Int       @default(0)
+  id              String      @id @default(cuid())
+  articulo_id     String
+  articulo        Articulo    @relation(fields: [articulo_id], references: [id], onDelete: Cascade)
+  proceso_base_id String
+  procesoBase     ProcesoBase @relation(fields: [proceso_base_id], references: [id], onDelete: Cascade)
+  orden           Int         @default(0)
 }
 
 model ArticuloInsumoStandard {
-  id             String   @id @default(cuid())
-  articulo_id    String
-  articulo       Articulo @relation(fields: [articulo_id], references: [id], onDelete: Cascade)
-  descripcion    String   @db.VarChar(300)
-  costo_unitario Float    @default(0)
-  orden          Int      @default(0)
+  id              String     @id @default(cuid())
+  articulo_id     String
+  articulo        Articulo   @relation(fields: [articulo_id], references: [id], onDelete: Cascade)
+  insumo_base_id  String
+  insumoBase      InsumoBase @relation(fields: [insumo_base_id], references: [id], onDelete: Cascade)
+  cantidad        Float      @default(0)
+  orden           Int        @default(0)
 }

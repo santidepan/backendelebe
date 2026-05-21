@@ -10,6 +10,8 @@ const { talleresRouter } = require("./routes/talleres");
 const { produccionesRouter } = require("./routes/producciones");
 const { usuariosRouter } = require("./routes/usuarios");
 const { pagosRouter } = require("./routes/pagos");
+const { insumosBaseRouter } = require("./routes/insumos-base");
+const { procesosBaseRouter } = require("./routes/procesos-base");
 const { authMiddleware } = require("./middleware/auth");
 
 const app = express();
@@ -30,6 +32,8 @@ app.use("/api/talleres", talleresRouter);
 app.use("/api/producciones", produccionesRouter);
 app.use("/api/usuarios", usuariosRouter);
 app.use("/api/pagos", pagosRouter);
+app.use("/api/insumos-base", insumosBaseRouter);
+app.use("/api/procesos-base", procesosBaseRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

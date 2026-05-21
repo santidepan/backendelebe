@@ -79,10 +79,11 @@ router.get("/:id/standard", async (req, res) => {
       select: {
         descripcion_standard: true,
         etapasStandard: {
-          include: { tipoEtapa: { select: { nombre: true } } },
+          include: { procesoBase: true },
           orderBy: { orden: "asc" },
         },
         insumosStandard: {
+          include: { insumoBase: true },
           orderBy: { orden: "asc" },
         },
       },
@@ -92,15 +93,25 @@ router.get("/:id/standard", async (req, res) => {
       descripcion_standard: articulo.descripcion_standard || "",
       etapas: articulo.etapasStandard.map((e) => ({
         id: e.id,
-        tipo_etapa_id: e.tipo_etapa_id,
-        tipoEtapa: { nombre: e.tipoEtapa.nombre },
-        costo_unitario: e.costo_unitario,
+        proceso_base_id: e.proceso_base_id,
+        procesoBase: {
+          id: e.procesoBase.id,
+          nombre: e.procesoBase.nombre,
+          costo_unitario: e.procesoBase.costo_unitario,
+        },
         orden: e.orden,
       })),
       insumos: articulo.insumosStandard.map((ins) => ({
         id: ins.id,
-        descripcion: ins.descripcion,
-        costo_unitario: ins.costo_unitario,
+        insumo_base_id: ins.insumo_base_id,
+        insumoBase: {
+          id: ins.insumoBase.id,
+          nombre: ins.insumoBase.nombre,
+          unidad: ins.insumoBase.unidad,
+          precio_unitario: ins.insumoBase.precio_unitario,
+        },
+        cantidad: ins.cantidad,
+        costo_calculado: ins.insumoBase.precio_unitario * ins.cantidad,
         orden: ins.orden,
       })),
     });
@@ -125,24 +136,24 @@ router.put("/:id/standard", adminOnly, async (req, res) => {
       }),
     ]);
 
-    if (etapas.length > 0) {
+    const etapasValidas = etapas.filter((e) => e.proceso_base_id);
+    if (etapasValidas.length > 0) {
       await prisma.articuloEtapaStandard.createMany({
-        data: etapas.map((e, idx) => ({
+        data: etapasValidas.map((e, idx) => ({
           articulo_id: id,
-          tipo_etapa_id: e.tipo_etapa_id,
-          costo_unitario: parseFloat(e.costo_unitario) || 0,
+          proceso_base_id: e.proceso_base_id,
           orden: e.orden !== undefined ? e.orden : idx,
         })),
       });
     }
 
-    const insumosValidos = insumos.filter((ins) => ins.descripcion?.trim());
+    const insumosValidos = insumos.filter((ins) => ins.insumo_base_id);
     if (insumosValidos.length > 0) {
       await prisma.articuloInsumoStandard.createMany({
         data: insumosValidos.slice(0, 5).map((ins, idx) => ({
           articulo_id: id,
-          descripcion: ins.descripcion.trim(),
-          costo_unitario: parseFloat(ins.costo_unitario) || 0,
+          insumo_base_id: ins.insumo_base_id,
+          cantidad: parseFloat(ins.cantidad) || 0,
           orden: idx,
         })),
       });
@@ -153,25 +164,38 @@ router.put("/:id/standard", adminOnly, async (req, res) => {
       select: {
         descripcion_standard: true,
         etapasStandard: {
-          include: { tipoEtapa: { select: { nombre: true } } },
+          include: { procesoBase: true },
           orderBy: { orden: "asc" },
         },
-        insumosStandard: { orderBy: { orden: "asc" } },
+        insumosStandard: {
+          include: { insumoBase: true },
+          orderBy: { orden: "asc" },
+        },
       },
     });
     res.json({
       descripcion_standard: updated.descripcion_standard || "",
       etapas: updated.etapasStandard.map((e) => ({
         id: e.id,
-        tipo_etapa_id: e.tipo_etapa_id,
-        tipoEtapa: { nombre: e.tipoEtapa.nombre },
-        costo_unitario: e.costo_unitario,
+        proceso_base_id: e.proceso_base_id,
+        procesoBase: {
+          id: e.procesoBase.id,
+          nombre: e.procesoBase.nombre,
+          costo_unitario: e.procesoBase.costo_unitario,
+        },
         orden: e.orden,
       })),
       insumos: updated.insumosStandard.map((ins) => ({
         id: ins.id,
-        descripcion: ins.descripcion,
-        costo_unitario: ins.costo_unitario,
+        insumo_base_id: ins.insumo_base_id,
+        insumoBase: {
+          id: ins.insumoBase.id,
+          nombre: ins.insumoBase.nombre,
+          unidad: ins.insumoBase.unidad,
+          precio_unitario: ins.insumoBase.precio_unitario,
+        },
+        cantidad: ins.cantidad,
+        costo_calculado: ins.insumoBase.precio_unitario * ins.cantidad,
         orden: ins.orden,
       })),
     });
